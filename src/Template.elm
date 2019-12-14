@@ -193,7 +193,7 @@ selectedCustomerCard model =
                 [ div [ class "uk-card uk-card-default uk-card-body uk-width-1-2@m" ]
                     [ p [ class "uk-card-title" ]
                         [ text <|
-                            String.concat [ "Пользователь ", getAttrValue "name" customer, getAttrValue "surname" customer ]
+                            String.join " " [ "Пользователь", getAttrValue "name" customer, getAttrValue "surname" customer ]
                         ]
                     , span [] [ text "Описание" ]
                     , p [ class "uk-text-emphasis uk-margin-remove-top" ]

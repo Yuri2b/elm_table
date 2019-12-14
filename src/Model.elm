@@ -252,12 +252,12 @@ explainLoadError error =
             "Some network problems..."
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : (List String) -> ( Model, Cmd Msg )
+init columnsFromFlags =
     ( { customers = Loading
       , currentPage = 1
       , perPage = 25
-      , columns = [ "id", "name", "surname", "email", "phone", "address" ]
+      , columns = columnsFromFlags
       , orderBy = ( "id", "asc" )
       , query = ""
       , searchInput = ""
