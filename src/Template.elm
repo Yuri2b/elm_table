@@ -1,8 +1,8 @@
 module Template exposing (view)
 
 import Html exposing (..)
-import Html.Attributes exposing (attribute, autofocus, class, href, id, placeholder, value)
-import Html.Events exposing (onClick, onDoubleClick, onInput, onSubmit)
+import Html.Attributes exposing (attribute, class, href, id, placeholder, value)
+import Html.Events exposing (onClick, onInput)
 import Model exposing (..)
 
 

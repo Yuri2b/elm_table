@@ -16,8 +16,8 @@ module Model exposing
 import Array
 import Http
 import Json.Decode as JD
-import List exposing (sortBy)
-import String exposing (join)
+import List
+import String
 import Tuple exposing (first, second)
 
 
@@ -106,7 +106,7 @@ stringFromAttr attr =
             String.fromInt value
 
         Record attrs ->
-            join " " <| List.map (\a -> stringFromAttr a) attrs
+            String.join " " <| List.map (\a -> stringFromAttr a) attrs
 
 
 pagedItems : Int -> Int -> List a -> List a
