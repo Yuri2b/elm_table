@@ -105,7 +105,7 @@ currentPageCustomers model =
 
 filteredCustomersCount : Model -> Int
 filteredCustomersCount model =
-    List.length <| filteredCustomers model
+    filteredCustomers model |> List.length 
 
 
 pagesCount : Model -> Int

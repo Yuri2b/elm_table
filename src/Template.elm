@@ -1,7 +1,5 @@
 module Template exposing (view)
 
--- import Model as M
-
 import Html exposing (Html, a, button, div, input, li, p, span, table, tbody, td, text, th, thead, tr, ul)
 import Html.Attributes exposing (class, href, id, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -20,10 +18,8 @@ view model =
         , pagination model
         , div [ class "table-wrapper" ]
             [ table [ class "uk-table uk-table-stripped uk-table-hover uk-table-divider uk-table-responsive uk-table-small" ]
-                [ thead [] <|
-                    tableHead model
-                , tbody [] <|
-                    tableBody model
+                [ thead [] <| tableHead model
+                , tbody [] <| tableBody model
                 ]
             , loadingState model
             ]
@@ -188,58 +184,54 @@ partial_customer columns customer =
         )
 
 
+customerAttrToString : Customer -> String -> String
+customerAttrToString customer key =
+    TR.getAttrByKey key customer
+        |> TR.attrToString
+
+
 selectedCustomerCard : Model -> Html Msg
 selectedCustomerCard model =
     case model.selectedCustomer of
         Just customer ->
+            let
+                getAttr = customerAttrToString customer
+            in
             div [ class "item-wrapper uk-flex uk-flex-center@m" ]
                 [ div [ class "uk-card uk-card-default uk-card-body uk-width-1-2@m" ]
                     [ p [ class "uk-card-title" ]
-                        [ String.join " "
+                        [ text <| String.join " "
                             [ "Пользователь"
-                            , TR.getAttrByKey "name" customer
-                                |> TR.attrToString
-                            , TR.getAttrByKey "surname" customer
-                                |> TR.attrToString
+                            , getAttr "name"                                
+                            , getAttr "surname"
                             ]
-                            |> text
                         ]
                     , span [] [ text "Описание" ]
                     , p [ class "uk-text-emphasis uk-margin-remove-top" ]
-                        [ TR.getAttrByKey "description" customer
-                            |> TR.attrToString
-                            |> text
+                        [ text <| getAttr "description"
                         ]
                     , p []
-                        [ span [] [ text <| "Адрес проживания" ]
+                        [ span [] [ text "Адрес проживания" ]
                         , span [ class "uk-text-bold uk-display-block" ]
-                            [ TR.getAttrByKey "address.streetAddress" customer
-                                |> TR.attrToString
-                                |> text
+                            [ text <| getAttr "address.streetAddress"
                             ]
                         ]
                     , p []
                         [ text "Город"
                         , span [ class "uk-text-bold uk-display-block" ]
-                            [ TR.getAttrByKey "address.city" customer
-                                |> TR.attrToString
-                                |> text
+                            [ text <| getAttr "address.city"
                             ]
                         ]
                     , p []
                         [ text "Провинция/Штат"
                         , span [ class "uk-text-bold uk-display-block" ]
-                            [ TR.getAttrByKey "address.state" customer
-                                |> TR.attrToString
-                                |> text
+                            [ text <| getAttr "address.state"
                             ]
                         ]
                     , p []
                         [ text "Индекс"
                         , span [ class "uk-text-bold uk-display-block" ]
-                            [ TR.getAttrByKey "address.zip" customer
-                                |> TR.attrToString
-                                |> text
+                            [ text <| getAttr "address.zip"
                             ]
                         ]
                     ]

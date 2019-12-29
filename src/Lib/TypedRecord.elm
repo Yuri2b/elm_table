@@ -41,10 +41,10 @@ getAttrByKey searchKey item =
     in
     case String.split "." searchKey of
         [ key ] ->
-            List.head <| List.filter (checkAttrKey key) item
+            List.filter (checkAttrKey key) item |> List.head
 
         key :: rest ->
-            case List.head <| List.filter (checkAttrKey key) item of
+            case List.filter (checkAttrKey key) item |> List.head of
                 Just attr ->
                     case attr of
                         ( _, Record subAttr ) ->
@@ -108,7 +108,7 @@ sortedBy ( byKey, withOrder ) items =
             sortFunc withOrder
     in
     List.sortWith
-        (sortByOrder <| getAttrByKey byKey)
+        (getAttrByKey byKey |> sortByOrder)
         items
 
 
