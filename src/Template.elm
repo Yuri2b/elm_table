@@ -1,9 +1,12 @@
 module Template exposing (view)
 
-import Html exposing (..)
-import Html.Attributes exposing (attribute, class, href, id, placeholder, value)
+-- import Model as M
+
+import Html exposing (Html, a, button, div, input, li, p, span, table, tbody, td, text, th, thead, tr, ul)
+import Html.Attributes exposing (class, href, id, placeholder)
 import Html.Events exposing (onClick, onInput)
-import Model exposing (..)
+import Lib.TypedRecord as TR
+import Model exposing (Customer, Data(..), Model, Msg(..), currentPageCustomers, explainAppError, filteredCustomersCount, pagesCount)
 
 
 
@@ -100,7 +103,7 @@ loadingState model =
                     [ text "Во время загрузки данных произошла ошибка:"
                     ]
                 , span [ class "uk-text-small" ]
-                    [ text <| explainLoadError error
+                    [ text <| explainAppError error
                     ]
                 ]
 
@@ -172,7 +175,7 @@ partial_customer columns customer =
         dataCells =
             List.map
                 (\clmn ->
-                    getAttrValue clmn customer
+                    TR.getAttrByKey clmn customer |> TR.attrToString
                 )
                 columns
     in
@@ -192,31 +195,52 @@ selectedCustomerCard model =
             div [ class "item-wrapper uk-flex uk-flex-center@m" ]
                 [ div [ class "uk-card uk-card-default uk-card-body uk-width-1-2@m" ]
                     [ p [ class "uk-card-title" ]
-                        [ text <|
-                            String.join " " [ "Пользователь", getAttrValue "name" customer, getAttrValue "surname" customer ]
+                        [ String.join " "
+                            [ "Пользователь"
+                            , TR.getAttrByKey "name" customer
+                                |> TR.attrToString
+                            , TR.getAttrByKey "surname" customer
+                                |> TR.attrToString
+                            ]
+                            |> text
                         ]
                     , span [] [ text "Описание" ]
                     , p [ class "uk-text-emphasis uk-margin-remove-top" ]
-                        [ text <| getAttrValue "description" customer ]
+                        [ TR.getAttrByKey "description" customer
+                            |> TR.attrToString
+                            |> text
+                        ]
                     , p []
                         [ span [] [ text <| "Адрес проживания" ]
                         , span [ class "uk-text-bold uk-display-block" ]
-                            [ text <| getAttrValue "address.streetAddress" customer ]
+                            [ TR.getAttrByKey "address.streetAddress" customer
+                                |> TR.attrToString
+                                |> text
+                            ]
                         ]
                     , p []
                         [ text "Город"
                         , span [ class "uk-text-bold uk-display-block" ]
-                            [ text <| getAttrValue "address.city" customer ]
+                            [ TR.getAttrByKey "address.city" customer
+                                |> TR.attrToString
+                                |> text
+                            ]
                         ]
                     , p []
                         [ text "Провинция/Штат"
                         , span [ class "uk-text-bold uk-display-block" ]
-                            [ text <| getAttrValue "address.state" customer ]
+                            [ TR.getAttrByKey "address.state" customer
+                                |> TR.attrToString
+                                |> text
+                            ]
                         ]
                     , p []
                         [ text "Индекс"
                         , span [ class "uk-text-bold uk-display-block" ]
-                            [ text <| getAttrValue "address.zip" customer ]
+                            [ TR.getAttrByKey "address.zip" customer
+                                |> TR.attrToString
+                                |> text
+                            ]
                         ]
                     ]
                 ]
