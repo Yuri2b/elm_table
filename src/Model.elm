@@ -4,6 +4,7 @@ module Model exposing
     , Model
     , Msg(..)
     , currentPageCustomers
+    , customerAttrToString
     , explainAppError
     , filteredCustomersCount
     , init
@@ -105,7 +106,7 @@ currentPageCustomers model =
 
 filteredCustomersCount : Model -> Int
 filteredCustomersCount model =
-    filteredCustomers model |> List.length 
+    filteredCustomers model |> List.length
 
 
 pagesCount : Model -> Int
@@ -144,6 +145,13 @@ explainAppError error =
 
         _ ->
             "Some network problems..."
+
+
+customerAttrToString : Customer -> String -> String
+customerAttrToString customer key =
+    TR.getAttrByKey key customer
+        |> TR.attrToString
+        |> Maybe.withDefault "absent"
 
 
 init : JD.Value -> ( Model, Cmd Msg )
@@ -236,12 +244,12 @@ getData dataUrl =
 customerDecoder : JD.Decoder Customer
 customerDecoder =
     JD.succeed (\a b c d e f g -> [ a, b, c, d, e, f, g ])
-        |> required "id" (TR.attrIntValDecoder "id")
-        |> required "firstName" (TR.attrStringValDecoder "name")
-        |> required "lastName" (TR.attrStringValDecoder "surname")
-        |> required "email" (TR.attrStringValDecoder "email")
-        |> required "phone" (TR.attrStringValDecoder "phone")
-        |> required "description" (TR.attrStringValDecoder "description")
+        |> required "id" (TR.attrIntDecoder "id")
+        |> required "firstName" (TR.attrStringDecoder "name")
+        |> required "lastName" (TR.attrStringDecoder "surname")
+        |> required "email" (TR.attrStringDecoder "email")
+        |> required "phone" (TR.attrStringDecoder "phone")
+        |> required "description" (TR.attrStringDecoder "description")
         |> required "adress" (TR.attrRecordDecoder "address" customerAddressDecoder)
 
 
@@ -249,7 +257,7 @@ customerAddressDecoder : JD.Decoder TypedRecord
 customerAddressDecoder =
     -- Mapping fields in prefered order
     JD.succeed (\a b c d -> [ a, b, c, d ])
-        |> required "city" (TR.attrStringValDecoder "city")
-        |> required "state" (TR.attrStringValDecoder "state")
-        |> required "streetAddress" (TR.attrStringValDecoder "streetAddress")
-        |> required "zip" (TR.attrStringValDecoder "zip")
+        |> required "city" (TR.attrStringDecoder "city")
+        |> required "state" (TR.attrStringDecoder "state")
+        |> required "streetAddress" (TR.attrStringDecoder "streetAddress")
+        |> required "zip" (TR.attrStringDecoder "zip")

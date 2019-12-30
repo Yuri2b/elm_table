@@ -1,16 +1,23 @@
 module Lib.TypedRecord exposing
     ( TypedRecord
-    , attrIntValDecoder
+    , attrBoolDecoder
+    , attrFloatDecoder
+    , attrIntDecoder
     , attrRecordDecoder
-    , attrStringValDecoder
+    , attrStringDecoder
     , attrToString
     , filteredBy
     , getAttrByKey
+    , listBoolDecoder
+    , listFloatDecoder
+    , listIntDecoder
+    , listStringDecoder
+    , listRecordDecoder
     , sortedBy
     )
 
 import Json.Decode as JD
-import Tuple exposing (first, second)
+import Tuple
 
 
 type alias TR =
@@ -28,7 +35,10 @@ type alias Attr =
 type AttrValue
     = String String
     | Int Int
+    | Float Float
+    | Bool Bool
     | Record (List Attr)
+    | List (List AttrValue)
 
 
 getAttrByKey : String -> TypedRecord -> Maybe Attr
@@ -36,8 +46,8 @@ getAttrByKey searchKey item =
     -- imitation of searching for attributes likewise in Record
     let
         checkAttrKey =
-            \k attr ->
-                first attr == k
+            \key attr ->
+                Tuple.first attr == key
     in
     case String.split "." searchKey of
         [ key ] ->
@@ -60,24 +70,37 @@ getAttrByKey searchKey item =
             Nothing
 
 
-attrToString : Maybe Attr -> String
+attrValueToString : AttrValue -> String
+attrValueToString attrValue =
+    case attrValue of
+        String value ->
+            value
+
+        Int value ->
+            String.fromInt value
+
+        Float value ->
+            String.fromFloat value
+
+        Bool value ->
+            if value then
+                "true"
+
+            else
+                "false"
+
+        Record attrs ->
+            List.map (\( _, av ) -> attrValueToString av) attrs
+                |> String.join " "
+
+        List attrValues ->
+            List.map (\av -> attrValueToString av) attrValues
+                |> String.join " "
+
+
+attrToString : Maybe Attr -> Maybe String
 attrToString is_attr =
-    case is_attr of
-        Nothing ->
-            ""
-
-        Just attr ->
-            case second attr of
-                String value ->
-                    value
-
-                Int value ->
-                    String.fromInt value
-
-                Record attrs ->
-                    List.map (\a -> Just a) attrs
-                        |> List.map (\a -> attrToString a)
-                        |> String.join " "
+    Maybe.map (\( _, attrValue ) -> attrValueToString attrValue) is_attr
 
 
 sortedBy : ( String, String ) -> List TR -> List TR
@@ -86,7 +109,7 @@ sortedBy ( byKey, withOrder ) items =
         sortFunc : String -> (TR -> Maybe Attr) -> TR -> TR -> Order
         sortFunc =
             \order func a b ->
-                case compare (func a |> attrToString) (func b |> attrToString) of
+                case compare (func a |> attrToString |> Maybe.withDefault "") (func b |> attrToString |> Maybe.withDefault "") of
                     LT ->
                         if order == "asc" then
                             LT
@@ -122,32 +145,78 @@ filteredBy filteredKeys queryString items =
 
         onlyDisplayedAttrs =
             \attr ->
-                List.member (first attr) filteredKeys
+                List.member (Tuple.first attr) filteredKeys
     in
     List.filter
         (\item ->
             List.filter onlyDisplayedAttrs item
                 |> List.map (\a -> Just a)
                 |> List.map attrToString
+                |> List.map (Maybe.withDefault "")
                 |> List.any containsQueryString
         )
         items
 
 
+
+{--JSON decoders--}
+
+
 buildAttr : String -> AttrValue -> JD.Decoder Attr
-buildAttr attrName attr =
-    JD.succeed ( attrName, attr )
+buildAttr attrName attrValue =
+    JD.succeed ( attrName, attrValue )
 
 
-attrIntValDecoder : String -> JD.Decoder Attr
-attrIntValDecoder attrName =
+
+{--basic types decoders --}
+
+
+attrIntDecoder : String -> JD.Decoder Attr
+attrIntDecoder attrName =
     JD.map Int JD.int |> JD.andThen (buildAttr attrName)
 
 
-attrStringValDecoder : String -> JD.Decoder Attr
-attrStringValDecoder attrName =
+attrFloatDecoder : String -> JD.Decoder Attr
+attrFloatDecoder attrName =
+    JD.map Float JD.float |> JD.andThen (buildAttr attrName)
+
+
+attrStringDecoder : String -> JD.Decoder Attr
+attrStringDecoder attrName =
     JD.map String JD.string |> JD.andThen (buildAttr attrName)
 
+
+attrBoolDecoder : String -> JD.Decoder Attr
+attrBoolDecoder attrName =
+    JD.map Bool JD.bool |> JD.andThen (buildAttr attrName)
+
+
+
+{--data structures decodeers --}
+
+
+listStringDecoder : String -> JD.Decoder Attr
+listStringDecoder attrName =
+    JD.map List (JD.list (JD.map String JD.string)) |> JD.andThen (buildAttr attrName)
+
+
+listIntDecoder : String -> JD.Decoder Attr
+listIntDecoder attrName =
+    JD.map List (JD.list (JD.map Int JD.int)) |> JD.andThen (buildAttr attrName)
+
+
+listFloatDecoder : String -> JD.Decoder Attr
+listFloatDecoder attrName =
+    JD.map List (JD.list (JD.map Float JD.float)) |> JD.andThen (buildAttr attrName)
+
+
+listBoolDecoder : String -> JD.Decoder Attr
+listBoolDecoder attrName =
+    JD.map List (JD.list (JD.map Bool JD.bool)) |> JD.andThen (buildAttr attrName)
+
+listRecordDecoder : String -> JD.Decoder TR -> JD.Decoder Attr
+listRecordDecoder attrName nestedRecordDecoder =
+    JD.map List ( JD.list ( JD.map Record (JD.lazy (\_ -> nestedRecordDecoder)))) |> JD.andThen (buildAttr attrName)
 
 attrRecordDecoder : String -> JD.Decoder TR -> JD.Decoder Attr
 attrRecordDecoder attrName nestedRecordDecoder =

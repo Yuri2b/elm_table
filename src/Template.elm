@@ -3,8 +3,18 @@ module Template exposing (view)
 import Html exposing (Html, a, button, div, input, li, p, span, table, tbody, td, text, th, thead, tr, ul)
 import Html.Attributes exposing (class, href, id, placeholder)
 import Html.Events exposing (onClick, onInput)
-import Lib.TypedRecord as TR
-import Model exposing (Customer, Data(..), Model, Msg(..), currentPageCustomers, explainAppError, filteredCustomersCount, pagesCount)
+import Model
+    exposing
+        ( Customer
+        , Data(..)
+        , Model
+        , Msg(..)
+        , currentPageCustomers
+        , customerAttrToString
+        , explainAppError
+        , filteredCustomersCount
+        , pagesCount
+        )
 
 
 
@@ -168,12 +178,11 @@ partial_pageLinks pNumber pCurrent pCount =
 partial_customer : List String -> Customer -> Html Msg
 partial_customer columns customer =
     let
+        getAttr =
+            customerAttrToString customer
+
         dataCells =
-            List.map
-                (\clmn ->
-                    TR.getAttrByKey clmn customer |> TR.attrToString
-                )
-                columns
+            List.map (\clmn -> getAttr clmn) columns
     in
     tr [ onClick <| SelectCustomer customer ]
         (List.map
@@ -184,27 +193,23 @@ partial_customer columns customer =
         )
 
 
-customerAttrToString : Customer -> String -> String
-customerAttrToString customer key =
-    TR.getAttrByKey key customer
-        |> TR.attrToString
-
-
 selectedCustomerCard : Model -> Html Msg
 selectedCustomerCard model =
     case model.selectedCustomer of
         Just customer ->
             let
-                getAttr = customerAttrToString customer
+                getAttr =
+                    customerAttrToString customer
             in
             div [ class "item-wrapper uk-flex uk-flex-center@m" ]
                 [ div [ class "uk-card uk-card-default uk-card-body uk-width-1-2@m" ]
                     [ p [ class "uk-card-title" ]
-                        [ text <| String.join " "
-                            [ "Пользователь"
-                            , getAttr "name"                                
-                            , getAttr "surname"
-                            ]
+                        [ text <|
+                            String.join " "
+                                [ "Пользователь"
+                                , getAttr "name"
+                                , getAttr "surname"
+                                ]
                         ]
                     , span [] [ text "Описание" ]
                     , p [ class "uk-text-emphasis uk-margin-remove-top" ]
